@@ -1,0 +1,2 @@
+user: "{{ ansible_user }}"
+go_version: "1.21.5"

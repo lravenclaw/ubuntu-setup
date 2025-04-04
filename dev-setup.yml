@@ -1,0 +1,193 @@
+- name: Настройка системы для Python/Go/DevOps разработки
+  hosts: dev-machines
+  become: yes
+
+  vars:
+    user: "{{ ansible_user }}"
+    go_version: "1.21.5"
+
+  tasks:
+
+  - name: Обновление apt и базовых пакетов
+    apt:
+      update_cache: yes
+      name:
+        - git
+        - curl
+        - wget
+        - unzip
+        - vim
+        - zsh
+        - tmux
+        - build-essential
+        - software-properties-common
+        - ca-certificates
+        - gnupg
+        - lsb-release
+        - python3
+        - python3-pip
+        - python3-venv
+        - libpq-dev
+        - gcc
+        - g++
+        - clang
+        - cmake
+        - make
+        - pkg-config
+        - libssl-dev
+        - libffi-dev
+        - docker.io
+        - docker-compose
+        - redis-server
+        - rabbitmq-server
+        - postgresql
+        - postgresql-contrib
+      state: present
+
+  - name: Добавить пользователя в группу docker
+    user:
+      name: "{{ user }}"
+      groups: docker
+      append: yes
+
+  - name: Включить и запустить Docker
+    systemd:
+      name: docker
+      enabled: yes
+      state: started
+
+  - name: Включить и запустить Redis
+    systemd:
+      name: redis-server
+      enabled: yes
+      state: started
+
+  - name: Включить и запустить RabbitMQ
+    systemd:
+      name: rabbitmq-server
+      enabled: yes
+      state: started
+
+  - name: Установка Go {{ go_version }}
+    shell: |
+      curl -LO https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz
+      rm -rf /usr/local/go
+      tar -C /usr/local -xzf go{{ go_version }}.linux-amd64.tar.gz
+      echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/profile
+    args:
+      creates: "/usr/local/go"
+
+  - name: Установка oh-my-zsh
+    become: false
+    shell: |
+      if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+      fi
+    when: ansible_env.SHELL != "/usr/bin/zsh"
+
+  - name: Установка AWS CLI
+    get_url:
+      url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+      dest: "/tmp/awscliv2.zip"
+
+  - name: Распаковка AWS CLI
+    unarchive:
+      src: "/tmp/awscliv2.zip"
+      dest: "/tmp"
+      remote_src: yes
+
+  - name: Установка AWS CLI
+    shell: /tmp/aws/install
+    args:
+      creates: /usr/local/bin/aws
+
+  - name: Установка Bazel
+    shell: |
+      curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > /usr/share/keyrings/bazel-archive-keyring.gpg
+      echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" > /etc/apt/sources.list.d/bazel.list
+      apt update && apt install -y bazel
+    args:
+      executable: /bin/bash
+
+  - name: Установка Pytest
+    pip:
+      name: pytest
+      executable: pip3
+
+  - name: Установка Guake терминала
+    apt:
+      name: guake
+      state: present
+
+  - name: Настройка F1 для Guake
+    shell: |
+      gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/guake/']"
+      gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/guake/ name 'Toggle Guake'
+      gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/guake/ command 'guake-toggle'
+      gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/guake/ binding 'F1'
+    become: false
+    environment:
+      DISPLAY: ":0"
+      DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/1000/bus"
+
+  - name: Генерация SSH-ключа для GitHub
+    become: false
+    openssh_keypair:
+      path: "{{ lookup('env','HOME') }}/.ssh/id_ed25519_github"
+      type: ed25519
+      comment: "github"
+      force: no
+
+  - name: Генерация SSH-ключа для GitLab (dostavix)
+    become: false
+    openssh_keypair:
+      path: "{{ lookup('env','HOME') }}/.ssh/id_ed25519_gitlab_dostavix"
+      type: ed25519
+      comment: "gitlab-dostavix"
+      force: no
+
+  - name: Генерация SSH-ключа для GitLab (ledrus)
+    become: false
+    openssh_keypair:
+      path: "{{ lookup('env','HOME') }}/.ssh/id_ed25519_gitlab_ledrus"
+      type: ed25519
+      comment: "gitlab-ledrus"
+      force: no
+
+  - name: Установка KeePassXC
+    apt:
+      name: keepassxc
+      state: present
+
+  - name: Установка Telegram
+    apt:
+      name: telegram-desktop
+      state: present
+
+  - name: Установка Discord
+    shell: |
+      wget -O /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb"
+      apt install -y /tmp/discord.deb
+    args:
+      creates: /usr/bin/discord
+
+  - name: Установка VS Code (snap)
+    snap:
+      name: code
+      classic: yes
+
+  - name: Установка Postman (snap)
+    snap:
+      name: postman
+      classic: yes
+
+  - name: Установка Notion (через snap)
+    snap:
+      name: notion-snap
+      classic: yes
+    ignore_errors: yes
+
+  - name: Установка PyCharm Professional (snap)
+    snap:
+      name: pycharm-professional
+      classic: yes
