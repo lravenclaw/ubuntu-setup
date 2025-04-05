@@ -3,7 +3,7 @@
   become: yes
 
   vars:
-    user: "{{ ansible_user }}"
+    user: "{{ user }}"
     go_version: "1.21.5"
 
   tasks:
@@ -109,11 +109,6 @@
     args:
       executable: /bin/bash
 
-  - name: Установка Pytest
-    pip:
-      name: pytest
-      executable: pip3
-
   - name: Установка Guake терминала
     apt:
       name: guake
@@ -160,9 +155,9 @@
       state: present
 
   - name: Установка Telegram
-    apt:
+    snap:
       name: telegram-desktop
-      state: present
+      classic: yes
 
   - name: Установка Discord
     shell: |
@@ -186,8 +181,3 @@
       name: notion-snap
       classic: yes
     ignore_errors: yes
-
-  - name: Установка PyCharm Professional (snap)
-    snap:
-      name: pycharm-professional
-      classic: yes
