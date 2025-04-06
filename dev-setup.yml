@@ -5,11 +5,6 @@
   vars:
     user: "user"
     go_version: "1.21.5"
-    cursor_version: "0.48.7"
-    cursor_install_dir: "{{ ansible_user_dir }}/Applications"
-    cursor_desktop_path: "{{ ansible_user_dir }}/.local/share/applications/cursor.desktop"
-    cursor_download_url: "https://downloads.cursor.com/production/1d623c4cc1d3bb6e0fe4f1d5434b47b958b05876/linux/x64/Cursor-{{ cursor_version }}-x86_64.AppImage"
-    cursor_target_path: "{{ cursor_install_dir }}/Cursor-{{ cursor_version }}.AppImage"
 
   tasks:
 
