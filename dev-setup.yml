@@ -224,26 +224,37 @@
       name: notion-desktop
       classic: yes
 
-  - name: Загрузка и установка Cursor IDE
-    get_url:
-      url: "https://cursor.software/download/Cursor-linux.deb"
-      dest: /tmp/cursor.deb
-
-  - name: Установка Cursor IDE
-    apt:
-      deb: /tmp/cursor.deb
-      state: present
-
-  - name: Очистка временных файлов Cursor IDE
+  - name: Создание папки Applications
     file:
-      path: /tmp/cursor.deb
-      state: absent
+      path: "{{ ansible_user_dir }}/Applications"
+      state: directory
+      mode: '0755'
 
-  - name: Установка Proton VPN
-    flatpak:
-      name: com.protonvpn.www
-      state: present
+  - name: Загрузка AppImage
+    get_url:
+      url: https://www.cursor.com/downloads/Cursor-0.48.7-x86_64.AppImage
+      dest: "{{ ansible_user_dir }}/Applications/Cursor.AppImage"
+      mode: '0755'
+      timeout: 60
 
+  - name: Создание ярлыка
+    copy:
+      dest: "{{ ansible_user_dir }}/.local/share/applications/cursor.desktop"
+      content: |
+        [Desktop Entry]
+        Name=Cursor
+        Exec={{ ansible_user_dir }}/Applications/Cursor.AppImage
+        Icon=cursor
+        Terminal=false
+        Type=Application
+        Categories=Development;IDE;
+      mode: '0644'
+
+  - name: Права на выполнение
+    file:
+      path: "{{ ansible_user_dir }}/Applications/Cursor.AppImage"
+      mode: '0755'
+  
   - name: Установка Pycharm Pro
     flatpak:
       name: com.jetbrains.PyCharm-Professional
