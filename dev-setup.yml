@@ -232,16 +232,6 @@
       name: com.protonvpn.www
       state: present
 
-  - name: Установка Pycharm Pro
-    flatpak:
-      name: com.jetbrains.PyCharm-Professional
-      state: present
-    
-  - name: Установка DataGrip
-    flatpak:
-      name: com.jetbrains.DataGrip
-      state: present
-
   - name: Обновить кэш ярлыков
     become: false
     command: update-desktop-database ~/.local/share/applications/
