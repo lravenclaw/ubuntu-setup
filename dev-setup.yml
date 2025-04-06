@@ -3,7 +3,7 @@
   become: yes
 
   vars:
-    user: "{{ user }}"
+    user: "user"
     go_version: "1.21.5"
 
   tasks:
@@ -149,6 +149,21 @@
       comment: "gitlab-ledrus"
       force: no
 
+  - name: Установка Flatpak
+    become: true
+    apt:
+      name: flatpak
+      state: present
+      update_cache: yes
+
+  - name: Добавление Flathub репозитория
+    become: true
+    command: >
+      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    args:
+    creates: /var/lib/flatpak/repo/flathub.trustedkeys.gpg
+
+
   - name: Установка KeePassXC
     apt:
       name: keepassxc
@@ -156,7 +171,7 @@
 
   - name: Установка Telegram
     flatpak:
-      name: com.telegram.Desktop
+      name: org.telegram.desktop
       state: present
 
   - name: Установка Discord 
@@ -175,9 +190,9 @@
       state: present
 
   - name: Установка Notion
-    flatpak:
-      name: fm.syncthing.Notion
-      state: present
+    snap:
+      name: notion-desktop
+      classic: yes
 
   - name: Загрузка и установка Cursor IDE
     get_url:
