@@ -227,54 +227,6 @@
       name: notion-desktop
       classic: yes
 
-  # Cursor AI
-  - name: Create applications directory
-    file:
-      path: "{{ cursor_install_dir }}"
-      state: directory
-      mode: '0755'
-
-  - name: Check if current version exists
-    stat:
-      path: "{{ cursor_target_path }}"
-    register: cursor_installed
-
-  - name: Download specific version (if not present)
-    get_url:
-      url: "{{ cursor_download_url }}"
-      dest: "{{ cursor_target_path }}"
-      mode: '0755'
-      timeout: 60
-    when: not cursor_installed.stat.exists
-    register: download_result
-
-  - name: Create symlink to current version
-    file:
-      src: "{{ cursor_target_path }}"
-      dest: "{{ cursor_install_dir }}/Cursor.AppImage"
-      state: link
-    when: not cursor_installed.stat.exists
-
-  - name: Create/update desktop entry
-    copy:
-      dest: "{{ cursor_desktop_path }}"
-      content: |
-        [Desktop Entry]
-        Name=Cursor ({{ cursor_version }})
-        Exec={{ cursor_install_dir }}/Cursor.AppImage
-        Icon=cursor
-        Terminal=false
-        Type=Application
-        Categories=Development;IDE;
-        StartupWMClass=cursor
-      mode: '0644'
-    when: download_result is changed or not cursor_installed.stat.exists
-
-  - name: Refresh desktop database
-    command: update-desktop-database "{{ ansible_user_dir }}/.local/share/applications"
-    when: download_result is changed
-
-
 
   - name: Установка Pycharm Pro
     flatpak:
