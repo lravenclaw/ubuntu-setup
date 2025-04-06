@@ -233,54 +233,10 @@
       name: com.jetbrains.PyCharm-Professional
       state: present
     
-  # Установка SQL Server
-  - name: Добавить ключ репозитория Microsoft
-    apt_key:
-      url: https://packages.microsoft.com/keys/microsoft.asc
+  - name: Установка DataGrip
+    flatpak:
+      name: com.jetbrains.DataGrip
       state: present
-
-  - name: Добавить репозиторий Microsoft SQL Server
-    apt_repository:
-      repo: 'deb [arch=amd64] https://packages.microsoft.com/config/ubuntu/20.04/prod.list'
-      state: present
-
-  - name: Установить mssql-server
-    apt:
-      name: mssql-server
-      state: present
-
-  - name: Настроить SQL Server
-    command: /opt/mssql/bin/mssql-conf setup
-    args:
-      creates: /var/opt/mssql/data
-
-  - name: Убедиться, что mssql-server запущен
-    systemd:
-      name: mssql-server
-      state: started
-      enabled: yes
-
-  # Установка Azure Data Studio
-  - name: Установить необходимые зависимости для Azure Data Studio
-    apt:
-      name:
-        - wget
-        - gdebi-core
-      state: present
-
-  - name: Скачать пакет Azure Data Studio
-    get_url:
-      url: https://go.microsoft.com/fwlink/?LinkID=760868
-      dest: /tmp/azure-data-studio.deb
-
-  - name: Установить Azure Data Studio
-    apt:
-      deb: /tmp/azure-data-studio.deb
-
-  - name: Удалить скачанный пакет Azure Data Studio
-    file:
-      path: /tmp/azure-data-studio.deb
-      state: absent
 
   - name: Обновить кэш ярлыков
     become: false
