@@ -227,6 +227,10 @@
       name: notion-desktop
       classic: yes
 
+  - name: Установка ProtonVPN
+    flatpak:
+      name: com.protonvpn.www
+      state: present
 
   - name: Установка Pycharm Pro
     flatpak:
