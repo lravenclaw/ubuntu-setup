@@ -149,21 +149,51 @@
       comment: "gitlab-ledrus"
       force: no
 
-  - name: Установка Flatpak
-    become: true
+    - name: Установить Flatpak
     apt:
       name: flatpak
       state: present
       update_cache: yes
 
-  - name: Добавление Flathub репозитория
-    become: true
+  - name: Установить xdg-desktop-portal и gtk-интеграцию
+    apt:
+      name:
+        - xdg-desktop-portal
+        - xdg-desktop-portal-gtk
+      state: present
+
+  - name: Установить GNOME-портал (если используется GNOME)
+    apt:
+      name: xdg-desktop-portal-gnome
+      state: present
+    when: ansible_facts['env']['XDG_CURRENT_DESKTOP'] is search("GNOME")
+
+  - name: Установить KDE-портал (если используется KDE)
+    apt:
+      name: xdg-desktop-portal-kde
+      state: present
+    when: ansible_facts['env']['XDG_CURRENT_DESKTOP'] is search("KDE")
+
+  - name: Добавить Flathub, если не добавлен
+    become: false
     command: >
       flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-    args:
-    creates: /var/lib/flatpak/repo/flathub.trustedkeys.gpg
+    environment:
+      XDG_RUNTIME_DIR: "/run/user/{{ ansible_uid }}"
 
+  - name: Перезапуск xdg-desktop-portal
+    become: false
+    ansible.builtin.systemd:
+      name: xdg-desktop-portal
+      state: restarted
+      scope: user
 
+  - name: Обновить flatpak пакеты
+    become: false
+    command: flatpak update -y
+    register: flatpak_update
+    changed_when: "'Changes complete' in flatpak_update.stdout"
+  
   - name: Установка KeePassXC
     apt:
       name: keepassxc
@@ -267,3 +297,7 @@
     file:
       path: /tmp/azure-data-studio.deb
       state: absent
+
+  - name: Обновить кэш ярлыков
+    become: false
+    command: update-desktop-database ~/.local/share/applications/
