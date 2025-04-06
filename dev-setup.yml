@@ -155,29 +155,100 @@
       state: present
 
   - name: Установка Telegram
-    snap:
-      name: telegram-desktop
-      classic: yes
+    flatpak:
+      name: com.telegram.Desktop
+      state: present
 
-  - name: Установка Discord
-    shell: |
-      wget -O /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb"
-      apt install -y /tmp/discord.deb
+  - name: Установка Discord 
+    flatpak:
+      name: com.discordapp.Discord
+      state: present
+
+  - name: Установка VS Code
+    flatpak:
+      name: com.visualstudio.code
+      state: present
+
+  - name: Установка Postman
+    flatpak:
+      name: com.getpostman.Postman
+      state: present
+
+  - name: Установка Notion
+    flatpak:
+      name: fm.syncthing.Notion
+      state: present
+
+  - name: Загрузка и установка Cursor IDE
+    get_url:
+      url: "https://cursor.software/download/Cursor-linux.deb"
+      dest: /tmp/cursor.deb
+
+  - name: Установка Cursor IDE
+    apt:
+      deb: /tmp/cursor.deb
+      state: present
+
+  - name: Очистка временных файлов Cursor IDE
+    file:
+      path: /tmp/cursor.deb
+      state: absent
+
+  - name: Установка Proton VPN
+    flatpak:
+      name: com.protonvpn.www
+      state: present
+
+  - name: Установка Pycharm Pro
+    flatpak:
+      name: com.jetbrains.PyCharm-Professional
+      state: present
+    
+  # Установка SQL Server
+  - name: Добавить ключ репозитория Microsoft
+    apt_key:
+      url: https://packages.microsoft.com/keys/microsoft.asc
+      state: present
+
+  - name: Добавить репозиторий Microsoft SQL Server
+    apt_repository:
+      repo: 'deb [arch=amd64] https://packages.microsoft.com/config/ubuntu/20.04/prod.list'
+      state: present
+
+  - name: Установить mssql-server
+    apt:
+      name: mssql-server
+      state: present
+
+  - name: Настроить SQL Server
+    command: /opt/mssql/bin/mssql-conf setup
     args:
-      creates: /usr/bin/discord
+      creates: /var/opt/mssql/data
 
-  - name: Установка VS Code (snap)
-    snap:
-      name: code
-      classic: yes
+  - name: Убедиться, что mssql-server запущен
+    systemd:
+      name: mssql-server
+      state: started
+      enabled: yes
 
-  - name: Установка Postman (snap)
-    snap:
-      name: postman
-      classic: yes
+  # Установка Azure Data Studio
+  - name: Установить необходимые зависимости для Azure Data Studio
+    apt:
+      name:
+        - wget
+        - gdebi-core
+      state: present
 
-  - name: Установка Notion (через snap)
-    snap:
-      name: notion-snap
-      classic: yes
-    ignore_errors: yes
+  - name: Скачать пакет Azure Data Studio
+    get_url:
+      url: https://go.microsoft.com/fwlink/?LinkID=760868
+      dest: /tmp/azure-data-studio.deb
+
+  - name: Установить Azure Data Studio
+    apt:
+      deb: /tmp/azure-data-studio.deb
+
+  - name: Удалить скачанный пакет Azure Data Studio
+    file:
+      path: /tmp/azure-data-studio.deb
+      state: absent
