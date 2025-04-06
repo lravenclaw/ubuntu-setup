@@ -183,8 +183,6 @@
     become: false
     command: >
       flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-    environment:
-      XDG_RUNTIME_DIR: "/run/user/{{ ansible_uid }}"
 
   - name: Перезапуск xdg-desktop-portal
     become: false
