@@ -154,7 +154,7 @@
       comment: "gitlab-ledrus"
       force: no
 
-    - name: Установить Flatpak
+  - name: Установить Flatpak
     apt:
       name: flatpak
       state: present
